@@ -64,85 +64,14 @@ def _players_dict_to_list(players_dict, player_type):
 
     return players_list
 
-if __name__ == '__main__':
-    client = MongoClient('localhost', 27017)
-    db = client.tweetsAGRS
+def _analyse_real_madrid_players(real_madrid_players_dict, nodes, links, player_idx, document):
+    tweet_text = document['text'].lower()
 
-    nodes = []
-    links = []
+    for player in real_madrid_players_dict:
+        player_names = player.split(',')
 
-    player_objs = {}
-
-    nodes = (_players_dict_to_list(REAL_MADRID_PLAYERS, 'player-rm') 
-             +
-             _players_dict_to_list(BARCELONA_PLAYERS, 'player-bcn'))
-
-    nodes.append({'id': 'referee', 'count': 0, 'type': 'referee'})
-
-    for document in db.RMABCN.find({}):
-        player_idx = 0
-
-        tweet_text = document['text'].lower()
-
-        for player in REAL_MADRID_PLAYERS.keys():
-            player_names = player.split(',')
-
-            if len(player_names) == 1:
-                if player_names[0] != 'modric':
-                    if re.search(player_names[0], tweet_text):
-                        nodes[player_idx]['count'] += 1
-
-                        if document['user']['verified']:
-                            account = {'id': str(document['user']['screen_name']), 
-                                       'type': 'account'
-                                      }
-
-                            if account not in nodes:
-                                nodes.append(account)
-
-                            links.append({'source': nodes.index(account), 
-                                                   'target': player_idx,
-                                                   'type': 'rm'
-                                                  })
-                else:
-                    if re.search(player_names[0] + '|' + REAL_MADRID_PLAYERS[player], tweet_text):
-                        nodes['nodes'][player_idx]['count'] += 1     
-
-                        if document['user']['verified']:
-                            account = {'id': str(document['user']['screen_name']), 
-                                       'type': 'account'
-                                      }
-
-                            if account not in nodes['nodes']:
-                                nodes.append(account)
-
-                            links.append({'source': nodes.index(account), 
-                                                   'target': player_idx,
-                                                   'type': 'rm'
-                                                  })
-            else:
-                if re.search(player_names[0] + '|' + player_names[1], tweet_text):
-                    nodes[player_idx]['count'] += 1
-
-                    if document['user']['verified']:
-                        account = {'id': str(document['user']['screen_name']), 
-                                   'type': 'account'
-                                  }
-
-                        if account not in nodes:
-                            nodes.append(account)
-
-                        links.append({'source': nodes.index(account), 
-                                               'target': player_idx,
-                                               'type': 'rm'
-                                              })
-
-            player_idx += 1
-
-        for player in BARCELONA_PLAYERS.keys():
-            player_names = player.split(',')
-
-            if len(player_names) == 1:
+        if len(player_names) == 1:
+            if player_names[0] != 'modric':
                 if re.search(player_names[0], tweet_text):
                     nodes[player_idx]['count'] += 1
 
@@ -151,16 +80,16 @@ if __name__ == '__main__':
                                    'type': 'account'
                                   }
 
-                        if account not in nodes['nodes']:
-                            nodes['nodes'].append(account)
+                        if account not in nodes:
+                            nodes.append(account)
 
                         links.append({'source': nodes.index(account), 
-                                               'target': player_idx,
-                                               'type': 'bcn'
-                                              })
+                                      'target': player_idx,
+                                      'type': 'rm'
+                                     })
             else:
-                if re.search(player_names[0] + '|' + player_names[1], tweet_text):
-                    nodes[player_idx]['count'] += 1
+                if re.search(player_names[0] + '|' + real_madrid_players_dict[player], tweet_text):
+                    nodes[player_idx]['count'] += 1     
 
                     if document['user']['verified']:
                         account = {'id': str(document['user']['screen_name']), 
@@ -171,24 +100,92 @@ if __name__ == '__main__':
                             nodes.append(account)
 
                         links.append({'source': nodes.index(account), 
-                                               'target': player_idx,
-                                               'type': 'bcn'
-                                              })
+                                      'target': player_idx,
+                                      'type': 'rm'
+                                     })
+        else:
+            if re.search(player_names[0] + '|' + player_names[1], tweet_text):
+                nodes[player_idx]['count'] += 1
 
-            player_idx += 1                  
-    
-    client.close()
+                if document['user']['verified']:
+                    account = {'id': str(document['user']['screen_name']), 
+                               'type': 'account'
+                              }
 
-    with open('./assets/elclasico2017.json', 'w') as f:
+                    if account not in nodes:
+                        nodes.append(account)
+
+                    links.append({'source': nodes.index(account), 
+                                  'target': player_idx,
+                                  'type': 'rm'
+                                 })
+
+        player_idx += 1
+
+    return player_idx
+
+def _analyse_barcelona_players(barcelona_players_dict, nodes, links, player_idx, document):
+    tweet_text = document['text'].lower()
+
+    for player in barcelona_players_dict:
+        player_names = player.split(',')
+
+        if len(player_names) == 1:
+            if re.search(player_names[0], tweet_text):
+                nodes[player_idx]['count'] += 1
+
+                if document['user']['verified']:
+                    account = {'id': str(document['user']['screen_name']), 
+                               'type': 'account'
+                              }
+
+                    if account not in nodes:
+                        nodes.append(account)
+
+                    links.append({'source': nodes.index(account), 
+                                  'target': player_idx,
+                                  'type': 'bcn'
+                                 })
+        else:
+            if re.search(player_names[0] + '|' + player_names[1], tweet_text):
+                nodes[player_idx]['count'] += 1
+
+                if document['user']['verified']:
+                    account = {'id': str(document['user']['screen_name']), 
+                               'type': 'account'
+                              }
+
+                    if account not in nodes:
+                        nodes.append(account)
+
+                    links.append({'source': nodes.index(account), 
+                                  'target': player_idx,
+                                  'type': 'bcn'
+                                 })
+
+        player_idx += 1 
+
+    return player_idx
+
+
+def _analyse_all_players(real_madrid_players_dict, barcelona_players_dict, nodes, links, player_idx, document):
+    player_idx = _analyse_real_madrid_players(real_madrid_players_dict, nodes, links, player_idx, document)
+    _analyse_barcelona_players(barcelona_players_dict, nodes, links, player_idx, document)
+
+
+def _write_d3_json_format(file_path, nodes, links):
+    with open(file_path, 'w') as f:
         json = {'graph': {}, 'multigraph': False, 'directed': False}
         json['nodes'] = nodes
         json['links'] = links
 
+        # Finding partitions
         g = json_graph.node_link_graph(json, directed=False)
         parts = community.best_partition(g)
 
         json['multigraph'] = True
 
+        # Adding partition info into each node object
         for key in parts:
             found = False
 
@@ -197,9 +194,33 @@ if __name__ == '__main__':
                 if json['nodes'][i]['id'] == key:
                     json['nodes'][i]['community'] = parts[key]
                     found = True
-
                 i += 1
 
             found = True
 
-        f.write(str(json).replace("'", '"').replace('False', 'false').replace('True', 'true')) # Hago esto porque sino los strings aparecen con una u delante
+        f.write(str(json).replace("'", '"')
+                .replace('False', 'false')
+                .replace('True', 'true')) # I need to do these, otherwise strings will have an annoying 'u' at the beggining  
+
+if __name__ == '__main__':
+    client = MongoClient('localhost', 27017)
+    db = client.tweetsAGRS
+
+    nodes = []
+    links = []
+
+    nodes = (_players_dict_to_list(REAL_MADRID_PLAYERS, 'player-rm') 
+             +
+             _players_dict_to_list(BARCELONA_PLAYERS, 'player-bcn'))
+
+    for document in db.RMABCN.find({}):
+        player_idx = 0
+
+        # nodes and links lists will be modified
+        _analyse_all_players(REAL_MADRID_PLAYERS, BARCELONA_PLAYERS, nodes, links, player_idx, document)
+
+    client.close()
+
+    _write_d3_json_format('./assets/elclasico2017.json', nodes, links)
+
+
