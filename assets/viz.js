@@ -80,10 +80,23 @@
 
         //https://gist.github.com/aaizemberg/78bd3dade9593896a59d
         function custom_colors(n) {
-          var colors = ["#ff9900", "#109618", "#BE62BE", "#dd4477", "#66aa00",
+          var colors = ["#ff9900", "#109618", "#BE62BE", "#dd4477", "#AA5200",
              "#1CCF95", "#22aa99", "#aaaa11", "#D9E806", "#e67300", "#651067", 
              "#329262", "#5574a6", "#D9067E"];            
           return colors[n % colors.length];
+        }
+
+        function color_by_type(d) {
+            switch (d.type) {
+                case "player-rm":
+                    return "#FFFFFF";
+                case "player-bcn":
+                    return "#C9002E";
+                case "referee":
+                    return "#000000";
+                default:
+                    return custom_colors(d.community)
+            }            
         }
 
         node.append("circle")
@@ -98,29 +111,11 @@
             })
             .attr("fill",
                 (d) => {
-                    switch (d.type) {
-                        case "player-rm":
-                            return "#FFFFFF";
-                        case "player-bcn":
-                            return "#C9002E";
-                        case "referee":
-                            return "#000000";
-                        default:
-                            return custom_colors(d.community)
-                    }
+                    return color_by_type(d);
             })            
             .style("stroke", 
                 (d) => {                    
-                    switch (d.type) {
-                        case "player-rm":
-                            return "#FFFFFF";
-                        case "player-bcn":
-                            return "#C9002E";
-                        case "referee":
-                            return "#000000";
-                        default:
-                            return custom_colors(d.community)
-                    }
+                    return color_by_type(d);
             })
             .style("stroke-width", 
                 (d) => {
