@@ -12,6 +12,8 @@
                 }))
             .append("g");
 
+    var pattern_def = svg.append("defs");
+
     var force = d3.layout.force()
             .size([width, height]);
 
@@ -85,6 +87,15 @@
         }
 
         node.append("circle")
+            .attr("r", 
+                (d) => {
+                    if (d.count === undefined) {
+                        return 8;
+                    }
+                    else {
+                        return ((((d.count - min_count) / (max_count - min_count))) * 20) + 5;
+                    }
+            })
             .attr("fill",
                 (d) => {
                     switch (d.type) {
@@ -97,22 +108,18 @@
                         default:
                             return custom_colors(d.community)
                     }
-                })
-            .attr("r", 
-                (d) => {
-                    if (d.count === undefined) {
-                        return 8;
-                    }
-                    else {
-                        return ((((d.count - min_count) / (max_count - min_count))) * 20) + 5;
-                    }
-            })
+            })            
             .style("stroke", 
                 (d) => {                    
-                    if (d.type == 'account') {
-                        return custom_colors(d.community);
-                    } else {
-                        return '#918F00';
+                    switch (d.type) {
+                        case "player-rm":
+                            return "#FFFFFF";
+                        case "player-bcn":
+                            return "#C9002E";
+                        case "referee":
+                            return "#000000";
+                        default:
+                            return custom_colors(d.community)
                     }
             })
             .style("stroke-width", 
@@ -120,17 +127,48 @@
                     if (d.type == 'account') {
                         return '1px';
                     } else {
-                        return '1.1px';
+                        return '2.5px';
                     }
             })
-            .attr("xlink:href", 
-                (d) => {
-                    if (d.id != 'messi' && d.id != 'busquets') {
-                        return 'https://twitter.com/' + d.id;
-                    } else {
-                        return 'https://www.google.es/search?q=' + d.id;
+            .each(function(d,i) {
+                if ('img' in d) {
+                    // append image pattern for each node
+                    switch(d.id) {
+                        case 'zidane':
+                            d.img = 'http://theworldgame.sbs.com.au/sites/sbs.com.au.theworldgame/files/styles/full/public/20160529001260266484-original.jpg';
+                            break;
+                        case 'messi':
+                            d.img = 'http://static.goal.com/4321800/4321812_news.jpg';
+                            break;
+                        case 'busquets':
+                            d.img = 'https://clickon-media-soccer.s3.amazonaws.com/2016/02/diver.jpg';
+                            break;
                     }
-            })
+                    
+
+                    pattern_def.append("pattern")
+                            .attr("id", "node-img" + i)
+                            .attr("patternUnits", "objectBoundingBox")
+                            .attr({
+                                "width": "100%",
+                                "height": "100%"
+                            })
+                            .attr({
+                                "viewBox": "0 0 1 1"
+                            })
+                            .append("image")
+                            .attr("xlink:href", d.img)
+                            .attr({
+                                "x": 0,
+                                "y": 0,
+                                "width": "1",
+                                "height": "1",
+                                "preserveAspectRatio": "none"
+                            });
+
+                    d3.select(this).attr("fill", "url(#node-img" + i + ")");
+                }
+            })            
             .append("svg:title") //Title to player nodes when mouse hovering
             .text((d) => { return d.id + ((d.type == "account") ? "" : ", " + String(d.count) + " mentions"); });   
 

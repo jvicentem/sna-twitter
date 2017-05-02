@@ -4,6 +4,7 @@ import re
 import networkx as nx
 from networkx.readwrite import json_graph
 import community
+from tweets_getter import KeyStore
 
 REAL_MADRID_PLAYERS = {
     'keylor,navas': 'navaskeylor',
@@ -53,13 +54,19 @@ BARCELONA_PLAYERS = {
 }
 
 def _players_dict_to_list(players_dict, player_type):
+    twitter = KeyStore('./twitter_credentials.txt')
+
     players_list = []
 
+
+
     for player in players_dict:
+
         players_list.append({'id': players_dict[player], 
                              'count': 0, 
                              'type': player_type,
-                             'graph': 0
+                             'graph': 0,
+                             'img': str(twitter.api.users.search(q = players_dict[player])[0]['profile_image_url_https'])
                             })
 
     return players_list
