@@ -1,0 +1,25 @@
+* {
+  font-family: 'Sintony', sans-serif;
+}
+
+.link {
+    stroke-width: 1px;
+}
+
+.node circle {
+    cursor: pointer;
+    /*stroke: #000000;*/
+    /*stroke-width: 1.5px;*/
+}
+
+.node text {
+    pointer-events: none;
+    font: 10px sans-serif;
+}
+
+.color-sqr {
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  border: 1px solid rgba(0, 0, 0, .2);
+}
