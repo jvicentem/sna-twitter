@@ -1,5 +1,5 @@
 (function(){
-    Math.seedrandom('5'); //2, 5*
+    Math.seedrandom('5'); 
 
     var width = 1920,
             height = 1080
@@ -52,18 +52,6 @@
             if (node.type === 'player-rm' || node.type === 'player-bcn') return -1210; 
             return -853; 
         });        
-
-        // -1000, -30
-        // -1000, -500
-        // -500, -1000
-        // -1000, -1000 <---------------
-        // -890, -850
-        // -1200, -850 <----------------
-        // -1200, -860 <----------------
-        // -1200, -855 <----------------
-        // -1200, -853 <----------------
-        // -1210, -853 <----------------
-        // -1215, -853 <----------------
         
         force.start();
 
@@ -134,11 +122,25 @@
                     } else {
                         return '1.1px';
                     }
-            })            
+            })
+            .attr("xlink:href", 
+                (d) => {
+                    if (d.id != 'messi' && d.id != 'busquets') {
+                        return 'https://twitter.com/' + d.id;
+                    } else {
+                        return 'https://www.google.es/search?q=' + d.id;
+                    }
+            })
             .append("svg:title") //Title to player nodes when mouse hovering
             .text((d) => { return d.id + ((d.type == "account") ? "" : ", " + String(d.count) + " mentions"); });   
 
-        //node.select("circle").forEach(collide(0.5));
+        node.on('dblclick', function (d) {
+            if (d.id != 'messi' && d.id != 'busquets' && d.id != 'zidane') {
+                window.open('https://twitter.com/' + d.id, '_blank');
+            } else {
+                window.open('https://www.google.es/search?q=' + d.id, '_blank');
+            }            
+        })
 
         force.on("tick", function() {
             link.attr("x1", (d) => { return d.source.x; })
@@ -148,33 +150,5 @@
 
             node.attr("transform", (d) => { return "translate(" + d.x + "," + d.y + ")"; });           
         });
-
-/*        function collide(alpha) {
-            var quadtree = d3.geom.quadtree(node);
-            return function(d) {
-                var r = d.radius + maxRadius + padding,
-                        nx1 = d.x - r,
-                        nx2 = d.x + r,
-                        ny1 = d.y - r,
-                        ny2 = d.y + r;
-                quadtree.visit(function(quad, x1, y1, x2, y2) {
-                    if (quad.point && (quad.point !== d)) {
-                        var x = d.x - quad.point.x,
-                                y = d.y - quad.point.y,
-                                l = Math.sqrt(x * x + y * y),
-                                r = d.radius + quad.point.radius + padding;
-                        if (l < r) {
-                            l = (l - r) / l * alpha;
-                            d.x -= x *= l;
-                            d.y -= y *= l;
-                            quad.point.x += x;
-                            quad.point.y += y;
-                        }
-                    }
-                    return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-                });
-            };
-        }*/
-
     });
 }());
